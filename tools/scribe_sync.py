@@ -273,7 +273,13 @@ def auto(o):
     ledger = load_json(LEDGER, {})
     arts = api("/articles?limit=50")["data"]
     approved = [x for x in arts if x["status"] == "approved"]
-    print("%d articles, %d approved" % (len(arts), len(approved)))
+    min_q = cfg.get("auto_approve_min_quality")
+    if min_q is not None:
+        auto_ok = [x for x in arts if x["status"] == "in_review" and (x.get("quality_score") or 0) >= min_q]
+        for x in auto_ok:
+            print("AUTO-APPROVE %s (quality %s >= %s): %s" % (x["id"], x.get("quality_score"), min_q, x.get("title")))
+        approved += auto_ok
+    print("%d articles, %d to publish" % (len(arts), len(approved)))
     done = 0
     for s_ in approved:
         a = api("/articles/%s" % s_["id"])
