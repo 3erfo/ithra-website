@@ -26,7 +26,7 @@ Safety: the Scribe API can't filter by brand, so --auto only publishes articles 
 topic/title passes the rules in tools/publish-config.json (see that file).
 Without --auto nothing is uploaded: review the files, then upload with VS Code SFTP.
 """
-import argparse, datetime, html, json, os, re, subprocess, sys, tempfile, urllib.request
+import argparse, datetime, html, json, os, re, subprocess, sys, tempfile, time, urllib.request
 
 API = "https://scribe.whizztech.ai/v1"
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "site"))
@@ -238,15 +238,36 @@ def ftp_upload(files):
         else:
             sys.exit("Set FTP_USER / FTP_PASSWORD, or add the login to ~/.netrc")
         cfg_path = cfg.name
+    def run(batch):
+        cmd = ["curl", "-sS", "--ssl-reqd", "--ftp-create-dirs", "-K", cfg_path]
+        for rel in batch:  # several -T/url pairs in one call = one reused FTPS connection
+            cmd += ["-T", os.path.join(SITE, rel), "ftp://%s%s/%s" % (host, root, rel)]
+        return subprocess.run(cmd, capture_output=True, text=True)
+
     try:
-        for rel in files:
-            url = "ftp://%s%s/%s" % (host, root, rel)
-            r = subprocess.run(["curl", "-sS", "--ssl-reqd", "--ftp-create-dirs", "--retry", "2",
-                                "-K", cfg_path, "-T", os.path.join(SITE, rel), url],
-                               capture_output=True, text=True)
-            if r.returncode != 0:
-                raise RuntimeError("upload failed for %s: %s" % (rel, r.stderr.strip()))
-            print("  uploaded:", rel)
+        pending, failed = list(files), []
+        while pending:
+            batch, pending = pending[:10], pending[10:]
+            r = run(batch)
+            if r.returncode == 0:
+                for rel in batch:
+                    print("  uploaded:", rel)
+                continue
+            # batch broke part-way: retry each file on its own, with a pause between attempts
+            print("  connection dropped (%s), retrying files one by one" % r.stderr.strip()[:80])
+            for rel in batch:
+                for attempt in range(1, 5):
+                    if run([rel]).returncode == 0:
+                        print("  uploaded:", rel)
+                        break
+                    time.sleep(3 * attempt)
+                else:
+                    failed.append(rel)
+                    print("  FAILED:", rel)
+            time.sleep(2)
+        if failed:
+            raise RuntimeError("%d file(s) failed to upload: %s (just run the same command again)"
+                               % (len(failed), ", ".join(failed)))
     finally:
         os.unlink(cfg_path)
 
