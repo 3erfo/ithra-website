@@ -10,7 +10,7 @@ OLD = re.compile(r'<script src="https://desk\.whizztech\.ai/embed\.js"[^>]*></sc
 
 def snippet(locale):
     return ('<script src="https://desk.whizztech.ai/embed.js" data-widget="%s" data-color="%s" '
-            'data-locale="%s" data-theme="light" defer></script>\n' % (KEY, COLOR, locale))
+            'data-locale="%s" defer></script>\n' % (KEY, COLOR, locale))
 
 
 changed = []
