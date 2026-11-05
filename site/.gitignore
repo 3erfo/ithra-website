@@ -1,0 +1,10 @@
+.vscode/sftp.json
+.DS_Store
+node_modules/
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+*.log
+*.sql
+*.zip

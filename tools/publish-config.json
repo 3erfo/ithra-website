@@ -1,0 +1,13 @@
+{
+  "_help": "Rules for automatic publishing. The Scribe API returns every article on the account (no brand filter), so an APPROVED article is only published if its topic/title/keyword contains one of require_any_keyword, or its id is in allow_ids. Put ids you never want published in block_ids.",
+  "tag": "Insights",
+  "default_image": "media/images/cx.jpg",
+  "languages": ["en"],
+  "require_any_keyword": [
+    "ithra", "contact center", "contact centre", "call center", "customer experience",
+    "customer service", "bpo", "business process outsourcing", "outsourcing", "manpower",
+    "public-private partnership", "digital transformation"
+  ],
+  "allow_ids": [],
+  "block_ids": []
+}

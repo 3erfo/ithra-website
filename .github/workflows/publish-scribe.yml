@@ -1,0 +1,48 @@
+name: Publish Scribe articles
+
+on:
+  schedule:
+    - cron: "43 5 * * 0"   # every Sunday 08:43 Riyadh time (05:43 UTC)
+  workflow_dispatch:        # "Run workflow" button for publishing right away
+    inputs:
+      dry_run:
+        description: "Dry run (show what would be published, change nothing)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-scribe
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish approved articles
+        id: publish
+        env:
+          WHIZZ_SCRIBE_KEY: ${{ secrets.WHIZZ_SCRIBE_KEY }}
+          FTP_HOST: host.esolutionsit.com
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python3 tools/scribe_sync.py --auto --dry-run
+          else
+            python3 tools/scribe_sync.py --auto
+          fi
+
+      - name: Commit published pages
+        if: steps.publish.outputs.published != '' && steps.publish.outputs.published != '0'
+        run: |
+          git config user.name "scribe-publisher"
+          git config user.email "scribe-publisher@users.noreply.github.com"
+          git add -A site tools/published.json
+          git commit -m "Publish ${{ steps.publish.outputs.published }} Scribe article(s)"
+          git push

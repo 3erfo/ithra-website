@@ -1,0 +1,6 @@
+backup-original/
+site/.vscode/
+.DS_Store
+*.zip
+*.log
+__pycache__/
