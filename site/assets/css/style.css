@@ -1014,3 +1014,7 @@ a.card.info{color:inherit}
 /* Whizz Desk chat: match site buttons + keep "back to top" clear of the chat bubble */
 button[id^="whizz-desk-"][id$="-launcher"]{background:var(--grad)!important;color:var(--navy-950)!important;box-shadow:0 10px 30px -10px rgba(50,190,166,.8)!important;border:0!important}
 .to-top{bottom:100px}
+
+/* Whizz Desk launcher: Ithra symbol while closed (teal close X when open) */
+button[id^="whizz-desk-"][id$="-launcher"]:not([aria-label="Close chat"]){background:var(--navy-850) url(../../media/images/web/chat-icon.png) center/36px no-repeat!important;box-shadow:0 0 0 2px rgba(50,190,166,.55),0 10px 30px -10px rgba(50,190,166,.8)!important}
+button[id^="whizz-desk-"][id$="-launcher"]:not([aria-label="Close chat"]) .wd-icon{opacity:0}
