@@ -1,0 +1,33 @@
+name: Deploy site on push
+
+# Any change you push under site/ is uploaded to the live server (upload only, never deletes).
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Upload changed files
+        env:
+          FTP_HOST: host.esolutionsit.com
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "First push of the branch: nothing uploaded (the server already has the site)."
+            exit 0
+          fi
+          python3 tools/deploy.py --since "$BEFORE"

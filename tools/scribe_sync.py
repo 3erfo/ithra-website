@@ -228,11 +228,15 @@ def ftp_upload(files):
     host = os.environ.get("FTP_HOST", "host.esolutionsit.com")
     root = os.environ.get("FTP_ROOT", "/").rstrip("/")
     user, pw = os.environ.get("FTP_USER"), os.environ.get("FTP_PASSWORD")
-    if not (user and pw):
-        sys.exit("FTP_USER / FTP_PASSWORD are not set")
-    # credentials go through a temp config file, never the command line
+    # credentials go through a temp config file, never the command line;
+    # without FTP_USER/FTP_PASSWORD it falls back to ~/.netrc (local Mac use)
     with tempfile.NamedTemporaryFile("w", delete=False) as cfg:
-        cfg.write('user = "%s:%s"\n' % (user.replace('"', '\\"'), pw.replace('\\', '\\\\').replace('"', '\\"')))
+        if user and pw:
+            cfg.write('user = "%s:%s"\n' % (user.replace('"', '\\"'), pw.replace('\\', '\\\\').replace('"', '\\"')))
+        elif os.path.exists(os.path.expanduser("~/.netrc")):
+            cfg.write("netrc\n")
+        else:
+            sys.exit("Set FTP_USER / FTP_PASSWORD, or add the login to ~/.netrc")
         cfg_path = cfg.name
     try:
         for rel in files:
