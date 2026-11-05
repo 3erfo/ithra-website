@@ -1010,3 +1010,7 @@ a.card.info{color:inherit}
 .art-share{display:grid;gap:14px;padding:22px 26px}
 .art-share-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 @media (max-width:900px){.art-top,.art-grid{grid-template-columns:1fr}.art-hero{padding-top:160px}}
+
+/* Whizz Desk chat: match site buttons + keep "back to top" clear of the chat bubble */
+button[id^="whizz-desk-"][id$="-launcher"]{background:var(--grad)!important;color:var(--navy-950)!important;box-shadow:0 10px 30px -10px rgba(50,190,166,.8)!important;border:0!important}
+.to-top{bottom:100px}
